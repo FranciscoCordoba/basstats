@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useMatch } from "../context/MatchContext.js";
 import { BasketballCourt } from "../components/common/BasketballCourt.js";
 import {
@@ -16,10 +17,13 @@ import {
   Eye,
   EyeOff,
   Layers,
+  Trophy,
+  CheckCircle2,
 } from "lucide-react";
 import type { Jugador } from "../types/index.js";
 
 export const LiveMatchPage: React.FC = () => {
+  const navigate = useNavigate();
   const {
     matchState,
     selectedPlayer,
@@ -38,6 +42,7 @@ export const LiveMatchPage: React.FC = () => {
   const [subOutPlayer, setSubOutPlayer] = useState<Jugador | null>(null);
   const [showShots, setShowShots] = useState<boolean>(true);
   const [filterByPlayer, setFilterByPlayer] = useState<boolean>(true);
+  const [showEndMatchModal, setShowEndMatchModal] = useState<boolean>(false);
 
   const displayedShots = React.useMemo(() => {
     if (!showShots) return [];
@@ -410,6 +415,82 @@ export const LiveMatchPage: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* End Match Button Section */}
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-5 rounded-2xl bg-gradient-to-r from-surface-container-high via-surface-container to-surface-container-high border border-surface-container-highest shadow-xl">
+        <div className="space-y-1 text-center sm:text-left">
+          <h4 className="text-sm font-headline font-bold text-on-surface flex items-center justify-center sm:justify-start gap-2">
+            <Trophy className="w-4 h-4 text-primary" />
+            Finalización del Encuentro
+          </h4>
+          <p className="text-xs text-on-surface-variant">
+            Cierra el partido para calcular todas las estadísticas individuales, porcentajes, mapas de tiro y box score.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => setShowEndMatchModal(true)}
+          className="w-full sm:w-auto px-7 py-3.5 rounded-2xl bg-gradient-to-r from-primary-container to-orange-700 hover:from-orange-600 hover:to-orange-800 text-white font-headline font-black text-xs sm:text-sm shadow-xl shadow-primary-container/20 flex items-center justify-center space-x-2 transition-transform active:scale-95 whitespace-nowrap"
+        >
+          <Trophy className="w-4 h-4 fill-white" />
+          <span>Terminar Partido & Ver Estadísticas</span>
+        </button>
+      </div>
+
+      {/* End Match Confirmation Modal */}
+      {showEndMatchModal && (
+        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-surface-container-high border border-surface-container-highest rounded-3xl max-w-md w-full p-6 space-y-5 shadow-2xl">
+            <div className="flex items-center space-x-3.5">
+              <div className="w-12 h-12 rounded-2xl bg-primary-container/20 border border-primary/30 flex items-center justify-center text-primary shadow-inner">
+                <Trophy className="w-6 h-6 text-primary" />
+              </div>
+              <div>
+                <h3 className="font-headline font-bold text-base sm:text-lg text-on-surface">
+                  ¿Terminar Partido?
+                </h3>
+                <p className="text-xs text-on-surface-variant">
+                  Se generará el reporte estadístico completo por cada jugador.
+                </p>
+              </div>
+            </div>
+
+            {/* Scorecard preview */}
+            <div className="bg-surface-container p-4 rounded-2xl border border-surface-container-highest flex items-center justify-around text-center">
+              <div>
+                <span className="text-[10px] uppercase font-bold text-on-surface-variant block">{matchState.equipoLocal}</span>
+                <span className="text-3xl font-headline font-black text-primary">{matchState.puntosLocal}</span>
+              </div>
+              <span className="text-xl font-bold text-on-surface-variant/40">-</span>
+              <div>
+                <span className="text-[10px] uppercase font-bold text-on-surface-variant block">{matchState.equipoRival}</span>
+                <span className="text-3xl font-headline font-black text-on-surface">{matchState.puntosRival}</span>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end space-x-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setShowEndMatchModal(false)}
+                className="px-4 py-2.5 rounded-xl bg-surface-container hover:bg-surface-container-highest text-xs font-bold text-on-surface border border-surface-container-highest transition-colors"
+              >
+                Continuar Jugando
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowEndMatchModal(false);
+                  navigate("/match/summary");
+                }}
+                className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-primary-container to-orange-700 hover:from-orange-600 hover:to-orange-800 text-white font-headline font-black text-xs shadow-lg flex items-center space-x-2 transition-transform active:scale-95"
+              >
+                <CheckCircle2 className="w-4 h-4" />
+                <span>Confirmar & Ver Reporte</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Substitution Modal */}
       {showSubModal && (

@@ -10,6 +10,8 @@ import { TeamPage } from "./pages/TeamPage.js";
 import { PlayerProfilePage } from "./pages/PlayerProfilePage.js";
 import { RosterSelectPage } from "./pages/RosterSelectPage.js";
 
+import { MatchSummaryPage } from "./pages/MatchSummaryPage.js";
+
 export const App: React.FC = () => {
   return (
     <BrowserRouter>
@@ -29,6 +31,14 @@ export const App: React.FC = () => {
               element={
                 <Layout>
                   <LiveMatchPage />
+                </Layout>
+              }
+            />
+            <Route
+              path="/match/summary"
+              element={
+                <Layout>
+                  <MatchSummaryPage />
                 </Layout>
               }
             />
