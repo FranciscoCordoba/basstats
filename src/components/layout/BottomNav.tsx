@@ -27,11 +27,10 @@ export const BottomNav: React.FC = () => {
                 className="relative -top-4 flex flex-col items-center"
               >
                 <div
-                  className={`w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-transform active:scale-95 ${
-                    isActive
+                  className={`w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-transform active:scale-95 ${isActive
                       ? "bg-primary-container text-white ring-4 ring-primary-container/20"
                       : "bg-surface-container-highest text-primary ring-2 ring-primary/40"
-                  }`}
+                    }`}
                 >
                   <Icon className="w-6 h-6" />
                 </div>
@@ -46,11 +45,10 @@ export const BottomNav: React.FC = () => {
             <Link
               key={item.path}
               to={item.path}
-              className={`flex flex-col items-center py-1 px-3 rounded-xl transition-colors ${
-                isActive
+              className={`flex flex-col items-center py-1 px-3 rounded-xl transition-colors ${isActive
                   ? "text-primary"
                   : "text-on-surface-variant/70 hover:text-on-surface"
-              }`}
+                }`}
             >
               <Icon className="w-5 h-5 mb-0.5" />
               <span className="text-[10px] font-medium">{item.label}</span>
