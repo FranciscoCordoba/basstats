@@ -13,6 +13,9 @@ import {
   ArrowRightLeft,
   Flame,
   ShieldAlert,
+  Eye,
+  EyeOff,
+  Layers,
 } from "lucide-react";
 import type { Jugador } from "../types/index.js";
 
@@ -33,6 +36,22 @@ export const LiveMatchPage: React.FC = () => {
   const [pendingShotCoord, setPendingShotCoord] = useState<{ x: number; y: number } | null>(null);
   const [showSubModal, setShowSubModal] = useState<boolean>(false);
   const [subOutPlayer, setSubOutPlayer] = useState<Jugador | null>(null);
+  const [showShots, setShowShots] = useState<boolean>(true);
+  const [filterByPlayer, setFilterByPlayer] = useState<boolean>(true);
+
+  const displayedShots = React.useMemo(() => {
+    if (!showShots) return [];
+    if (filterByPlayer && selectedPlayer) {
+      return matchState.tiros.filter((shot) => {
+        if (shot.idJugador !== undefined) {
+          return shot.idJugador === selectedPlayer.id;
+        }
+        const ev = matchState.eventos.find((e) => e.id === shot.idEvento);
+        return ev ? ev.idJugador === selectedPlayer.id : false;
+      });
+    }
+    return matchState.tiros;
+  }, [showShots, filterByPlayer, selectedPlayer, matchState.tiros, matchState.eventos]);
 
   const handleCourtClick = (coords: { x: number; y: number }) => {
     setPendingShotCoord(coords);
@@ -138,24 +157,68 @@ export const LiveMatchPage: React.FC = () => {
       {/* Main Console Layout: Interactive Court & Action Buttons Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
         {/* Court Section */}
-        <div className="lg:col-span-6 bg-surface-container-high border border-surface-container-highest rounded-2xl space-y-3">
-          <div className="flex items-center justify-between">
+        <div className="lg:col-span-6 bg-surface-container-high border border-surface-container-highest rounded-2xl p-3 sm:p-4 space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <h3 className="font-headline font-bold text-sm text-on-surface flex items-center gap-1.5">
-              <Sparkles className="w-4 h-4 text-primary m-2 mb-0" />
-              Cancha de Tiro (Ubicación GPS)
+              <Sparkles className="w-4 h-4 text-primary" />
+              Cancha de Tiro
             </h3>
-            {pendingShotCoord && (
+
+            <div className="flex items-center space-x-1.5">
+              {/* Filtro: Solo Jugador Actual vs Todos */}
               <button
-                onClick={() => setPendingShotCoord(null)}
-                className="text-[11px] font-bold text-error hover:underline"
+                type="button"
+                onClick={() => setFilterByPlayer((prev) => !prev)}
+                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-colors flex items-center gap-1 border ${
+                  filterByPlayer
+                    ? "bg-primary-container/20 text-primary border-primary/40"
+                    : "bg-surface-container text-on-surface-variant border-surface-container-highest hover:text-on-surface"
+                }`}
+                title={filterByPlayer ? "Viendo tiros del jugador seleccionado" : "Viendo tiros de todo el equipo"}
               >
-                Limpiar Punto
+                <Layers className="w-3.5 h-3.5" />
+                <span>{filterByPlayer && selectedPlayer ? `#${selectedPlayer.numero}` : "Todos"}</span>
               </button>
-            )}
+
+              {/* Toggle Ocultar / Mostrar Tiros */}
+              <button
+                type="button"
+                onClick={() => setShowShots((prev) => !prev)}
+                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-colors flex items-center gap-1 border ${
+                  showShots
+                    ? "bg-surface-container text-on-surface border-surface-container-highest hover:bg-surface-container-highest"
+                    : "bg-error-container/20 text-error border-error/40"
+                }`}
+                title={showShots ? "Ocultar tiros" : "Mostrar tiros"}
+              >
+                {showShots ? (
+                  <>
+                    <Eye className="w-3.5 h-3.5 text-primary" />
+                    <span>Tiros ({displayedShots.length})</span>
+                  </>
+                ) : (
+                  <>
+                    <EyeOff className="w-3.5 h-3.5" />
+                    <span>Ocultos</span>
+                  </>
+                )}
+              </button>
+
+              {/* Limpiar punto fijado */}
+              {pendingShotCoord && (
+                <button
+                  type="button"
+                  onClick={() => setPendingShotCoord(null)}
+                  className="px-2 py-1 rounded-lg text-xs font-bold text-error bg-error-container/20 hover:bg-error-container/40 border border-error/30 transition-colors"
+                >
+                  Limpiar
+                </button>
+              )}
+            </div>
           </div>
 
           <BasketballCourt
-            shots={matchState.tiros}
+            shots={displayedShots}
             interactive={true}
             activeSelectedShot={pendingShotCoord}
             onCourtClick={handleCourtClick}

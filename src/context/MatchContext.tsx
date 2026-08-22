@@ -98,6 +98,7 @@ export const MatchProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       newShot = {
         id: Date.now(),
         idEvento: newEvent.id,
+        idJugador: selectedPlayer.id,
         x: coordinates.x,
         y: coordinates.y,
         anotado: isMade,

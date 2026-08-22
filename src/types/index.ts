@@ -49,6 +49,7 @@ export interface EstadisticaAccion {
 export interface UbicacionTiro {
   id?: number;
   idEvento?: number;
+  idJugador?: number;
   x: number; // percentage 0-100
   y: number; // percentage 0-100
   anotado?: boolean;
