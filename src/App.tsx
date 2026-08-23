@@ -42,30 +42,30 @@ export const App: React.FC = () => {
                 </Layout>
               }
             />
-            <Route
+            {/* <Route
               path="/login"
               element={
                 <Layout hideNav>
                   <AuthPage />
                 </Layout>
               }
-            />
-            {/*<Route
+            /> */}
+            {/* <Route
               path="/team"
               element={
                 <Layout>
                   <TeamPage />
                 </Layout>
               }
-            />*/}
-            <Route
+            /> */}
+            {/* <Route
               path="/player/:id"
               element={
                 <Layout>
                   <PlayerProfilePage />
                 </Layout>
               }
-            />
+            /> */}
             <Route
               path="/roster"
               element={

@@ -73,7 +73,7 @@ export const LiveMatchPage: React.FC = () => {
     <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 py-3 space-y-4">
       {/* Top Match Bar / Scoreboard */}
       <div className="bg-surface-container-high border border-surface-container-highest rounded-2xl p-4 shadow-xl">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+        <div className="flex flex-col items-center justify-between gap-4">
           {/* Team Scores */}
           <div className="flex items-center justify-between w-full md:w-auto md:space-x-8">
             {/* Home Team */}
@@ -160,9 +160,9 @@ export const LiveMatchPage: React.FC = () => {
 
 
       {/* Main Console Layout: Interactive Court & Action Buttons Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
+      <div className="grid grid-cols-1 gap-4 items-start">
         {/* Court Section */}
-        <div className="lg:col-span-6 bg-surface-container-high border border-surface-container-highest rounded-2xl p-3 sm:p-4 space-y-3">
+        <div className="bg-surface-container-high border border-surface-container-highest rounded-2xl p-3 sm:p-4 space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h3 className="font-headline font-bold text-sm text-on-surface flex items-center gap-1.5">
               <Sparkles className="w-4 h-4 text-primary" />
@@ -174,11 +174,10 @@ export const LiveMatchPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setFilterByPlayer((prev) => !prev)}
-                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-colors flex items-center gap-1 border ${
-                  filterByPlayer
-                    ? "bg-primary-container/20 text-primary border-primary/40"
-                    : "bg-surface-container text-on-surface-variant border-surface-container-highest hover:text-on-surface"
-                }`}
+                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-colors flex items-center gap-1 border ${filterByPlayer
+                  ? "bg-primary-container/20 text-primary border-primary/40"
+                  : "bg-surface-container text-on-surface-variant border-surface-container-highest hover:text-on-surface"
+                  }`}
                 title={filterByPlayer ? "Viendo tiros del jugador seleccionado" : "Viendo tiros de todo el equipo"}
               >
                 <Layers className="w-3.5 h-3.5" />
@@ -189,11 +188,10 @@ export const LiveMatchPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setShowShots((prev) => !prev)}
-                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-colors flex items-center gap-1 border ${
-                  showShots
-                    ? "bg-surface-container text-on-surface border-surface-container-highest hover:bg-surface-container-highest"
-                    : "bg-error-container/20 text-error border-error/40"
-                }`}
+                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-colors flex items-center gap-1 border ${showShots
+                  ? "bg-surface-container text-on-surface border-surface-container-highest hover:bg-surface-container-highest"
+                  : "bg-error-container/20 text-error border-error/40"
+                  }`}
                 title={showShots ? "Ocultar tiros" : "Mostrar tiros"}
               >
                 {showShots ? (
@@ -276,7 +274,7 @@ export const LiveMatchPage: React.FC = () => {
         </div>
 
         {/* Action Pad Buttons */}
-        <div className="lg:col-span-6 space-y-3">
+        <div className="space-y-3">
           <div className="bg-surface-container-high border border-surface-container-highest rounded-2xl p-2">
             <div className="flex items-center justify-between border-b border-surface-container-highest pb-2">
               <span className="text-xs font-bold text-on-surface">
@@ -294,7 +292,7 @@ export const LiveMatchPage: React.FC = () => {
               <span className="text-[10px] font-extrabold uppercase tracking-widest text-on-surface-variant">
                 Lanzamientos
               </span>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-3 sm:grid-rows-2 sm:grid-flow-col  gap-2">
                 <button
                   onClick={() => handleAction(1, "Tiro 2 Anotado", 2)}
                   className="bg-emerald-700/80 hover:bg-emerald-600 text-white font-bold p-3 rounded-xl shadow text-xs flex flex-col items-center justify-center transition-transform active:scale-95"
@@ -339,7 +337,7 @@ export const LiveMatchPage: React.FC = () => {
               <span className="text-[10px] font-extrabold uppercase tracking-widest text-on-surface-variant">
                 Rebotes, Asistencias & Defensa
               </span>
-              <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+              <div className="grid grid-cols-3 gap-2">
                 <button
                   onClick={() => handleAction(7, "Rebote Ofensivo")}
                   className="bg-surface-container-highest hover:bg-surface-container text-on-surface font-bold p-2.5 rounded-xl text-xs flex flex-col items-center transition-transform active:scale-95"

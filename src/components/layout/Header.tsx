@@ -20,15 +20,15 @@ export const Header: React.FC = () => {
           <div>
             <div className="flex items-center space-x-2">
               <span className="font-headline font-black text-xl tracking-tight text-on-surface">
-                BASTATS
+                BASSTATS
               </span>
               <span className="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-primary-container/20 text-primary-container border border-primary-container/30">
                 PRO
               </span>
             </div>
-            <p className="text-xs text-on-surface-variant/80 font-medium">
+            {/* <p className="text-xs text-on-surface-variant/80 font-medium">
               {currentTeam.nombre} • <span className="text-primary font-semibold">{currentTeam.nick}</span>
-            </p>
+            </p> */}
           </div>
         </Link>
 
@@ -43,7 +43,7 @@ export const Header: React.FC = () => {
           >
             Dashboard
           </Link>
-          <Link
+          {/* <Link
             to="/team"
             className={`px-3.5 py-2 rounded-lg text-sm font-semibold transition-colors flex items-center space-x-1.5 ${location.pathname === "/team"
               ? "bg-surface-container-high text-primary"
@@ -52,7 +52,7 @@ export const Header: React.FC = () => {
           >
             <Shield className="w-4 h-4" />
             <span>Mi Equipo</span>
-          </Link>
+          </Link> */}
           <Link
             to="/roster"
             className={`px-3.5 py-2 rounded-lg text-sm font-semibold transition-colors flex items-center space-x-1.5 ${location.pathname === "/roster"
@@ -76,7 +76,7 @@ export const Header: React.FC = () => {
         </nav>
 
         {/* User / Notification */}
-        <div className="flex items-center space-x-2">
+        {/* <div className="flex items-center space-x-2">
           <Link
             to="/login"
             className="flex items-center space-x-2 pl-2 border-l border-surface-container-highest"
@@ -90,7 +90,7 @@ export const Header: React.FC = () => {
               className="w-8 h-8 rounded-full object-cover border border-primary/30"
             />
           </Link>
-        </div>
+        </div> */}
       </div>
     </header>
   );

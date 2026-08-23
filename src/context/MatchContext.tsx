@@ -14,7 +14,7 @@ interface MatchContextType {
   incrementRivalScore: (points: number) => void;
   decrementRivalScore: (points: number) => void;
   undoLastEvent: () => void;
-  startNewMatch: (rivalName: string, startingFiveIds: number[], pin: string, initialJugadores: Jugador[]) => void;
+  startNewMatch: (localName: string, rivalName: string, startingFiveIds: number[], pin: string, initialJugadores: Jugador[]) => void;
 }
 
 const initialMatchState: MatchLiveState = {
@@ -48,13 +48,13 @@ export const MatchProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     localStorage.setItem("basstats_live_match", JSON.stringify(matchState));
   }, [matchState]);
 
-  const startNewMatch = (rivalName: string, startingFiveIds: number[], pin: string, initialJugadores: Jugador[]) => {
+  const startNewMatch = (localName: string, rivalName: string, startingFiveIds: number[], pin: string, initialJugadores: Jugador[]) => {
     const onCourt = initialJugadores.filter((j) => startingFiveIds.includes(j.id));
     const onBench = initialJugadores.filter((j) => !startingFiveIds.includes(j.id));
 
     const newState: MatchLiveState = {
       partidoId: Date.now(),
-      equipoLocal: "SLB Vietcong",
+      equipoLocal: localName || "Local",
       equipoRival: rivalName || "Rival",
       puntosLocal: 0,
       puntosRival: 0,

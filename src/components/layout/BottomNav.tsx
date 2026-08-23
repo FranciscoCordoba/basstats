@@ -9,7 +9,7 @@ export const BottomNav: React.FC = () => {
     { path: "/", label: "Inicio", icon: Home },
     { path: "/match/live", label: "En Vivo", icon: Radio, highlight: true },
     { path: "/roster", label: "Roster", icon: UserCheck },
-    { path: "/team", label: "Equipo", icon: Shield },
+    /* { path: "/team", label: "Equipo", icon: Shield }, */
   ];
 
   return (

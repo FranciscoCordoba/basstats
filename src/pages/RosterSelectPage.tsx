@@ -20,6 +20,7 @@ export const RosterSelectPage: React.FC = () => {
   const { startNewMatch } = useMatch();
   //const { currentTeam } = useAuth();
 
+  const [localName, setLocalName] = useState<string>("");
   const [rivalName, setRivalName] = useState<string>("");
   const [pin, setPin] = useState<string>("7421");
   const [selectedFive, setSelectedFive] = useState<number[]>([]);
@@ -49,7 +50,7 @@ export const RosterSelectPage: React.FC = () => {
       return;
     }
 
-    startNewMatch(rivalName, selectedFive, pin, initialJugadores);
+    startNewMatch(localName, rivalName, selectedFive, pin, initialJugadores);
     navigate("/match/live");
   };
 
@@ -96,6 +97,19 @@ export const RosterSelectPage: React.FC = () => {
           </h2>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="text-xs font-bold text-on-surface-variant block mb-1.5">
+                Equipo Local
+              </label>
+              <input
+                type="text"
+                required
+                placeholder="Nombre del equipo local"
+                value={localName}
+                onChange={(e) => setLocalName(e.target.value)}
+                className="w-full bg-surface-container border border-surface-container-highest rounded-xl px-3.5 py-2.5 text-xs text-on-surface focus:outline-none focus:border-primary"
+              />
+            </div>
             <div>
               <label className="text-xs font-bold text-on-surface-variant block mb-1.5">
                 Equipo Rival
