@@ -79,7 +79,7 @@ export const LiveMatchPage: React.FC = () => {
             {/* Home Team */}
             <div>
               <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-container to-orange-700 flex items-center justify-center text-white font-black font-headline text-lg shadow-md">
-                CND
+                LOC
               </div>
               <h2 className="font-headline font-black text-base text-on-surface">
                 {matchState.equipoLocal}
