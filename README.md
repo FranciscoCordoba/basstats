@@ -75,17 +75,39 @@ El sistema cuenta con **6 entidades principales fuertemente vinculadas**, incluy
 
 ## 📋 Matriz de Evidencias de Requerimientos Mínimos
 
-A continuación se detalla el cumplimiento estricto de cada uno de los requerimientos exigidos por la cátedra para la condición de **PROMOCIÓN**:
+A continuación se detalla el cumplimiento estricto de cada uno de los requerimientos exigidos por la cátedra para aprobar, con sus enlaces directos al código fuente y sus archivos de evidencia multimedia asociados:
 
-| Requerimiento Mínimo | Estado | Archivos de Código / Controladores | Descripción de la Evidencia |
+| Requerimiento Mínimo | Estado | Enlace al Código / Controladores | Evidencia (Captura / GIF / Video) |
 | :--- | :---: | :--- | :--- |
-| **1. 6 Tablas y Relaciones (1:N y Dependiente)** |  Cumplido | [usuarios.ts](basstats-api/src/db/schema/usuarios.ts)<br>[jugadores.ts](basstats-api/src/db/schema/jugadores.ts)<br>[partidos.ts](basstats-api/src/db/schema/partidos.ts)<br>[eventos.ts](basstats-api/src/db/schema/eventos.ts)<br>[seed.sql](seed.sql) | 6 tablas en PostgreSQL: `usuarios`, `jugadores`, `partidos`, `estadisticas`, `eventos`, `ubicacion_tiros`. DER documentado en `/docs/der.png`. |
-| **2. Login, Roles y Avatar** |  Cumplido | [auth.controller.ts](basstats-api/src/controllers/auth.controller.ts)<br>[auth.middleware.ts](basstats-api/src/middlewares/auth.middleware.ts)<br>[admin.controller.ts](basstats-api/src/controllers/admin.controller.ts)<br>[AuthContext.tsx](basstats-web/src/context/AuthContext.tsx) | Autenticación JWT con bcrypt. Manejo de roles `Administrador` y `Equipo`. Panel Admin exclusivo para cambio de roles y baja de equipos. Gestión y subida de Avatar de usuario en perfil. |
-| **3. Manejo de Archivos en Servidor** |  Cumplido | [cloudinary.ts](basstats-api/src/config/cloudinary.ts)<br>[upload.middleware.ts](basstats-api/src/middlewares/upload.middleware.ts)<br>[TeamPage.tsx](basstats-web/src/pages/TeamPage.tsx) | Subida de imágenes multipart con Multer y almacenamiento directo en servidor Cloudinary para el Avatar de usuario y la Foto del jugador (`foto`). |
-| **4. ABM Reactivo (SPA / AJAX sin recarga)** |  Cumplido | [TeamPage.tsx](basstats-web/src/pages/TeamPage.tsx)<br>[jugador.controller.ts](basstats-api/src/controllers/jugador.controller.ts) | CRUD completo de Jugadores (Alta con foto, Modificación, Baja y Listado) resuelto 100% vía AJAX/JSON en tiempo real sin recargar la página. |
-| **5. Paginado por Servidor (Server-Side Pagination)** |  Cumplido | [usuario.model.ts](basstats-api/src/models/usuario.model.ts)<br>[jugador.model.ts](basstats-api/src/models/jugador.model.ts)<br>[partido.model.ts](basstats-api/src/models/partido.model.ts)<br>[PaginationControl.tsx](basstats-web/src/components/common/PaginationControl.tsx) | Listados de Usuarios, Jugadores y Partidos paginados desde backend con `page` y `limit`, retornando metadatos `{ total, totalPages, page }`. |
-| **6. Búsqueda Asíncrona de Entidades (AJAX)** |  Cumplido | [UsuarioController.ts](basstats-api/src/controllers/usuario.controller.ts#L6)<br>[JugadorController.ts](basstats-api/src/controllers/jugador.controller.ts#L29)<br>[AsyncSearchSelect.tsx](basstats-web/src/components/common/AsyncSearchSelect.tsx)<br>[AdminPage.tsx](basstats-web/src/pages/AdminPage.tsx#L85) | Búsqueda asíncrona en servidor con debounce de 300ms en el panel de administración. Prohibido `<select>` masivo: las entidades se consultan dinámicamente vía AJAX. |
-| **7. Web API REST con JWT & Colección de Pruebas** |  Cumplido | [auth.routes.ts](basstats-api/src/routes/auth.routes.ts)<br>[admin.routes.ts](basstats-api/src/routes/admin.routes.ts)<br>[Colección Bruno](/docs/bruno) | Endpoints REST protegidos por Bearer Token JWT. Colección de pruebas Bruno completamente configurada con assertions y variables de entorno en `/docs/bruno`. |
+| **1. 6 Tablas y Relaciones (1:N y Dependiente)** |  Cumplido | [usuarios.ts](basstats-api/src/db/schema/usuarios.ts)<br>[jugadores.ts](basstats-api/src/db/schema/jugadores.ts)<br>[partidos.ts](basstats-api/src/db/schema/partidos.ts)<br>[eventos.ts](basstats-api/src/db/schema/eventos.ts)<br>[seed.sql](seed.sql) | Diagrama DER adjunto en [docs/der.png](docs/der.png) |
+| **2. Login, Roles y Avatar** |  Cumplido | [auth.controller.ts](basstats-api/src/controllers/auth.controller.ts)<br>[auth.middleware.ts](basstats-api/src/middlewares/auth.middleware.ts)<br>[admin.controller.ts](basstats-api/src/controllers/admin.controller.ts)<br>[AuthContext.tsx](basstats-web/src/context/AuthContext.tsx) | [Captura de pantalla de perfil con avatar](docs/Captura%20de%20pantalla%20de%20perfil%20con%20avatar.png) |
+| **3. Manejo de Archivos en Servidor** |  Cumplido | [cloudinary.ts](basstats-api/src/config/cloudinary.ts)<br>[upload.middleware.ts](basstats-api/src/middlewares/upload.middleware.ts)<br>[TeamPage.tsx](basstats-web/src/pages/TeamPage.tsx) | [GIF mostrando subida de archivo / foto](docs/GIF%20ABM%20dinamico%20+%20mostrando%20subida%20de%20archivo.gif) |
+| **4. ABM Reactivo (SPA / AJAX sin recarga)** |  Cumplido | [TeamPage.tsx](basstats-web/src/pages/TeamPage.tsx)<br>[jugador.controller.ts](basstats-api/src/controllers/jugador.controller.ts) | [GIF del ABM dinámico](docs/GIF%20ABM%20dinamico%20+%20mostrando%20subida%20de%20archivo.gif) |
+| **5. Paginado por Servidor (Server-Side Pagination)** |  Cumplido | [usuario.model.ts](basstats-api/src/models/usuario.model.ts)<br>[jugador.model.ts](basstats-api/src/models/jugador.model.ts)<br>[partido.model.ts](basstats-api/src/models/partido.model.ts)<br>[PaginationControl.tsx](basstats-web/src/components/common/PaginationControl.tsx) | [Captura del inspector de red enviando page=2](docs/Captura%20del%20inspector%20de%20red%20enviando%20page=2.png) |
+| **6. Búsqueda Asíncrona de Entidades (AJAX)** |  Cumplido | [usuario.controller.ts](basstats-api/src/controllers/usuario.controller.ts#L6)<br>[jugador.controller.ts](basstats-api/src/controllers/jugador.controller.ts#L29)<br>[AsyncSearchSelect.tsx](basstats-web/src/components/common/AsyncSearchSelect.tsx)<br>[AdminPage.tsx](basstats-web/src/pages/AdminPage.tsx#L121) | [GIF buscando entidades en desplegable](docs/GIF%20buscando%20entidades%20en%20desplegable.gif) |
+| **7. Web API REST con JWT & Colección de Pruebas** |  Cumplido | [auth.routes.ts](basstats-api/src/routes/auth.routes.ts)<br>[admin.routes.ts](basstats-api/src/routes/admin.routes.ts)<br>[Colección Bruno](/docs/bruno) | [Captura de Bruno con Bearer Token](docs/Captura%20de%20Bruno%20con%20Bearer%20Token.png) |
+
+---
+
+### 📸 Galería Visual de Evidencias
+
+#### Requerimiento 1: Diagrama Entidad-Relación (DER)
+![Diagrama DER](docs/der.png)
+
+#### Requerimiento 2: Perfil con Avatar Personalizado y Roles
+![Perfil con Avatar](docs/Captura%20de%20pantalla%20de%20perfil%20con%20avatar.png)
+
+#### Requerimientos 3 y 4: ABM Reactivo Dinámico y Manejo de Archivos en Servidor
+![ABM Dinámico y Subida de Archivo](docs/GIF%20ABM%20dinamico%20+%20mostrando%20subida%20de%20archivo.gif)
+
+#### Requerimiento 5: Paginado por Servidor (Inspector de Red con `page=2`)
+![Paginado por Servidor page=2](docs/Captura%20del%20inspector%20de%20red%20enviando%20page=2.png)
+
+#### Requerimiento 6: Búsqueda Asíncrona de Entidades en Servidor (AJAX Debounced)
+![Búsqueda Asíncrona AJAX](docs/GIF%20buscando%20entidades%20en%20desplegable.gif)
+
+#### Requerimiento 7: Web API REST con autenticación Bearer Token JWT (Bruno)
+![Web API JWT Bruno](docs/Captura%20de%20Bruno%20con%20Bearer%20Token.png)
 
 ---
 
