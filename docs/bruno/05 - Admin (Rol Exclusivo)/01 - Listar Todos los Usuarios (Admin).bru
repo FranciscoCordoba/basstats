@@ -1,0 +1,24 @@
+meta {
+  name: 01 - Listar Todos los Usuarios (Admin)
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/admin/usuarios?page=1&limit=10
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+tests {
+  test("status should be 200 for admin", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  test("returns all system users with roles", function() {
+    expect(res.getBody().data.length).to.be.greaterThan(0);
+  });
+}

@@ -84,7 +84,6 @@ export const AuthPage: React.FC = () => {
         {!isRegister && (
           <div className="p-3 bg-surface-container border border-surface-container-highest rounded-2xl space-y-2">
             <p className="text-[10px] font-extrabold uppercase tracking-wider text-on-surface-variant flex items-center gap-1">
-              <Sparkles className="w-3.5 h-3.5 text-primary" />
               Cuentas de Acceso Rápido:
             </p>
             <div className="grid grid-cols-2 gap-2">

@@ -1,0 +1,42 @@
+meta {
+  name: 01 - Registrar Evento con Coordenadas de Tiro
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/eventos
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "idPartido": 1,
+    "idJugador": 1,
+    "idEstadistica": 1,
+    "cuarto": 3,
+    "tiro": {
+      "x": 30.5,
+      "y": 75.0
+    }
+  }
+}
+
+tests {
+  test("status should be 201", function() {
+    expect(res.getStatus()).to.equal(201);
+  });
+  test("shot coordinates saved", function() {
+    expect(res.getBody().data.ubicacion).to.be.an("object");
+    expect(res.getBody().data.ubicacion.x).to.equal(30.5);
+  });
+}

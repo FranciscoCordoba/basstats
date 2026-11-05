@@ -1,0 +1,22 @@
+meta {
+  name: 01 - Listar Jugadores (Paginado Server-Side)
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/jugadores?page=1&limit=5
+  body: none
+  auth: none
+}
+
+tests {
+  test("status should be 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  test("pagination metadata returned by server", function() {
+    expect(res.getBody().pagination.page).to.equal(1);
+    expect(res.getBody().pagination.limit).to.equal(5);
+    expect(res.getBody().pagination.total).to.be.a("number");
+  });
+}

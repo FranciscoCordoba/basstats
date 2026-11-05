@@ -1,0 +1,38 @@
+meta {
+  name: 03 - Crear Jugador (CRUD)
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/jugadores
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "idEquipo": 2,
+    "nombreCompleto": "Emanuel Ginóbili",
+    "numero": 20,
+    "posicionPrincipal": "Escolta (SG)",
+    "foto": "https://images.unsplash.com/photo-1546519638-68e109498ffc?w=200&auto=format&fit=crop&q=80"
+  }
+}
+
+tests {
+  test("status should be 201", function() {
+    expect(res.getStatus()).to.equal(201);
+  });
+  test("player created successfully", function() {
+    expect(res.getBody().data.nombreCompleto).to.equal("Emanuel Ginóbili");
+  });
+}

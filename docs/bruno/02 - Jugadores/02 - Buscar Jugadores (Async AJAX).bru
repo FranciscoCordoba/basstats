@@ -1,0 +1,21 @@
+meta {
+  name: 02 - Buscar Jugadores (Async AJAX)
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/jugadores/search?q=matias
+  body: none
+  auth: none
+}
+
+tests {
+  test("status should be 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  test("finds matching player", function() {
+    expect(res.getBody().data.length).to.be.greaterThan(0);
+    expect(res.getBody().data[0].nombreCompleto).to.include("Matías");
+  });
+}

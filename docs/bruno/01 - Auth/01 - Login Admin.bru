@@ -1,0 +1,38 @@
+meta {
+  name: 01 - Login Admin
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/auth/login
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "correo": "admin@basstats.com",
+    "contrasena": "Admin123!"
+  }
+}
+
+script:post-response {
+  if (res.body && res.body.data && res.body.data.token) {
+    bru.setEnvVar("token", res.body.data.token);
+  }
+}
+
+tests {
+  test("status should be 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  test("token received and valid", function() {
+    expect(res.getBody().data.token).to.be.a("string");
+    expect(res.getBody().data.user.rol).to.equal("Administrador");
+  });
+}
