@@ -69,6 +69,29 @@ export const LiveMatchPage: React.FC = () => {
     setPendingShotCoord(null);
   };
 
+  if (matchState.jugadoresEnCancha.length === 0) {
+    return (
+      <div className="max-w-md mx-auto px-4 py-20 text-center space-y-4">
+        <div className="w-16 h-16 rounded-3xl bg-primary/20 text-primary mx-auto flex items-center justify-center">
+          <Play className="w-8 h-8 fill-primary" />
+        </div>
+        <h2 className="text-xl font-headline font-bold text-on-surface">No hay partido en curso</h2>
+        <p className="text-xs text-on-surface-variant leading-relaxed">
+          Para utilizar la consola en vivo con marcador y mapa interactivo, primero debes configurar un nuevo partido y seleccionar los 5 titulares iniciales de tu equipo.
+        </p>
+        <div className="pt-2">
+          <button
+            onClick={() => navigate("/roster")}
+            className="inline-flex items-center space-x-2 bg-primary hover:bg-orange-600 text-white font-bold text-xs px-6 py-3 rounded-xl shadow-lg transition-transform active:scale-95"
+          >
+            <Play className="w-4 h-4 fill-white" />
+            <span>Configurar Nuevo Partido</span>
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 py-3 space-y-4">
       {/* Top Match Bar / Scoreboard */}

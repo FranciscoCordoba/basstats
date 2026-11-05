@@ -1,176 +1,340 @@
-import type { Equipo, Jugador, Partido, EstadisticaAccion, EventoJuego, UbicacionTiro } from "../types/index.js";
-import { initialEquipo, initialJugadores, initialPartidos, initialEstadisticas } from "../data/mockData.js";
+import type {
+  Usuario,
+  Jugador,
+  Partido,
+  EstadisticaAccion,
+  EventoJuego,
+  PaginatedResult,
+} from "../types/index.js";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
 
 class ApiService {
-  private async request<T>(endpoint: string, options?: RequestInit): Promise<T> {
-    try {
-      const res = await fetch(`${API_BASE_URL}${endpoint}`, {
-        headers: {
-          "Content-Type": "application/json",
-          ...options?.headers,
-        },
-        ...options,
-      });
+  private getToken(): string | null {
+    return localStorage.getItem("basstats_token");
+  }
 
-      if (!res.ok) {
-        throw new Error(`API error: ${res.statusText}`);
+  private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+    const token = this.getToken();
+    const headers: Record<string, string> = {
+      ...((options.headers as Record<string, string>) || {}),
+    };
+
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+
+    // No establecer Content-Type si el cuerpo es FormData (el navegador define el límite automáticamente)
+    if (!(options.body instanceof FormData) && !headers["Content-Type"]) {
+      headers["Content-Type"] = "application/json";
+    }
+
+    const res = await fetch(`${API_BASE_URL}${endpoint}`, {
+      ...options,
+      headers,
+    });
+
+    const json = await res.json().catch(() => ({}));
+
+    if (!res.ok) {
+      throw new Error(json.error || json.message || `Error en la petición: ${res.statusText}`);
+    }
+
+    return json;
+  }
+
+  // ==========================================
+  // AUTENTICACIÓN & PERFIL
+  // ==========================================
+  async login(correo: string, contrasena: string): Promise<{ token: string; user: Usuario }> {
+    const res = await this.request<{ success: boolean; data: { token: string; user: Usuario } }>(
+      "/auth/login",
+      {
+        method: "POST",
+        body: JSON.stringify({ correo, contrasena }),
       }
-
-      const json = await res.json();
-      return json.data !== undefined ? json.data : json;
-    } catch (err) {
-      console.warn(`Fetch to ${endpoint} failed, using local state:`, err);
-      throw err;
+    );
+    if (res.data?.token) {
+      localStorage.setItem("basstats_token", res.data.token);
     }
+    return res.data;
   }
 
-  // Equipos
-  async getEquipos(): Promise<Equipo[]> {
-    try {
-      return await this.request<Equipo[]>("/equipos");
-    } catch {
-      return [initialEquipo];
-    }
-  }
-
-  async getEquipoById(id: number): Promise<Equipo> {
-    try {
-      return await this.request<Equipo>(`/equipos/${id}`);
-    } catch {
-      return initialEquipo;
-    }
-  }
-
-  async createEquipo(data: Partial<Equipo> & { contrasena: string }): Promise<Equipo> {
-    try {
-      return await this.request<Equipo>("/equipos", {
+  async register(data: {
+    nombre: string;
+    correo: string;
+    nick: string;
+    contrasena: string;
+    rol?: "Administrador" | "Equipo";
+    logo?: string;
+  }): Promise<{ token: string; user: Usuario }> {
+    const res = await this.request<{ success: boolean; data: { token: string; user: Usuario } }>(
+      "/auth/register",
+      {
         method: "POST",
         body: JSON.stringify(data),
-      });
-    } catch {
-      return {
-        id: Date.now(),
-        nombre: data.nombre || "Nuevo Equipo",
-        correo: data.correo || "equipo@ejemplo.com",
-        nick: data.nick || "EQP",
-        logo: data.logo,
-      };
+      }
+    );
+    if (res.data?.token) {
+      localStorage.setItem("basstats_token", res.data.token);
     }
+    return res.data;
   }
 
-  // Jugadores
-  async getJugadores(idEquipo?: number): Promise<Jugador[]> {
-    try {
-      const query = idEquipo ? `?idEquipo=${idEquipo}` : "";
-      return await this.request<Jugador[]>(`/jugadores${query}`);
-    } catch {
-      return initialJugadores;
-    }
+  async getProfile(): Promise<Usuario> {
+    const res = await this.request<{ success: boolean; data: Usuario }>("/auth/profile");
+    return res.data;
   }
 
-  async getJugadorById(id: number): Promise<Jugador | undefined> {
-    try {
-      return await this.request<Jugador>(`/jugadores/${id}`);
-    } catch {
-      return initialJugadores.find((j) => j.id === id);
-    }
+  async updateProfile(data: { nombre?: string; nick?: string; logo?: string }): Promise<Usuario> {
+    const res = await this.request<{ success: boolean; data: Usuario }>("/auth/profile", {
+      method: "PUT",
+      body: JSON.stringify(data),
+    });
+    return res.data;
   }
 
-  async createJugador(data: Partial<Jugador>): Promise<Jugador> {
-    try {
-      return await this.request<Jugador>("/jugadores", {
+  async uploadAvatar(file: File): Promise<{ url: string; user: Usuario }> {
+    const formData = new FormData();
+    formData.append("avatar", file);
+
+    const res = await this.request<{ success: boolean; data: { url: string; user: Usuario } }>(
+      "/auth/avatar",
+      {
         method: "POST",
-        body: JSON.stringify(data),
-      });
-    } catch {
-      const newJ: Jugador = {
-        id: Date.now(),
-        idEquipo: data.idEquipo || 1,
-        nombreCompleto: data.nombreCompleto || "Nuevo Jugador",
-        numero: data.numero || 0,
-        posicionPrincipal: data.posicionPrincipal || "Alero",
-        foto: data.foto,
-        ppg: 0,
-        rpg: 0,
-        apg: 0,
-      };
-      return newJ;
-    }
+        body: formData,
+      }
+    );
+    return res.data;
   }
 
-  // Partidos
-  async getPartidos(idEquipo?: number): Promise<Partido[]> {
-    try {
-      const query = idEquipo ? `?idEquipo=${idEquipo}` : "";
-      return await this.request<Partido[]>(`/partidos${query}`);
-    } catch {
-      return initialPartidos;
-    }
+  // ==========================================
+  // PANEL ADMINISTRADOR (Restringido por Rol)
+  // ==========================================
+  async getAdminUsers(page: number = 1, limit: number = 10, search?: string): Promise<PaginatedResult<Usuario>> {
+    const params = new URLSearchParams({ page: page.toString(), limit: limit.toString() });
+    if (search) params.append("search", search);
+
+    const res = await this.request<{ success: boolean; data: Usuario[]; pagination: any }>(
+      `/admin/usuarios?${params.toString()}`
+    );
+    return {
+      items: res.data,
+      pagination: res.pagination,
+    };
   }
 
-  async createPartido(data: Partial<Partido>): Promise<Partido> {
-    try {
-      return await this.request<Partido>("/partidos", {
+  async changeUserRole(id: number, rol: "Administrador" | "Equipo"): Promise<Usuario> {
+    const res = await this.request<{ success: boolean; data: Usuario }>(`/admin/usuarios/${id}/rol`, {
+      method: "PATCH",
+      body: JSON.stringify({ rol }),
+    });
+    return res.data;
+  }
+
+  async deleteUser(id: number): Promise<void> {
+    await this.request(`/admin/usuarios/${id}`, {
+      method: "DELETE",
+    });
+  }
+
+  async getAuditStats(): Promise<{ totalUsuarios: number; totalJugadores: number; totalPartidos: number }> {
+    const res = await this.request<{ success: boolean; data: any }>("/admin/audit");
+    return res.data;
+  }
+
+  // ==========================================
+  // BÚSQUEDA ASÍNCRONA (AJAX Search)
+  // ==========================================
+  async searchUsuarios(q: string): Promise<Usuario[]> {
+    if (!q || q.trim().length === 0) return [];
+    const res = await this.request<{ success: boolean; data: Usuario[] }>(
+      `/usuarios/search?q=${encodeURIComponent(q)}`
+    );
+    return res.data;
+  }
+
+  async searchJugadores(q: string, idEquipo?: number): Promise<Jugador[]> {
+    if (!q || q.trim().length === 0) return [];
+    const params = new URLSearchParams({ q });
+    if (idEquipo) params.append("idEquipo", idEquipo.toString());
+
+    const res = await this.request<{ success: boolean; data: Jugador[] }>(
+      `/jugadores/search?${params.toString()}`
+    );
+    return res.data;
+  }
+
+  // ==========================================
+  // JUGADORES (ABM REACTIVO + PAGINADO)
+  // ==========================================
+  async getJugadores(
+    page: number = 1,
+    limit: number = 10,
+    idEquipo?: number,
+    search?: string
+  ): Promise<PaginatedResult<Jugador>> {
+    const params = new URLSearchParams({ page: page.toString(), limit: limit.toString() });
+    if (idEquipo) params.append("idEquipo", idEquipo.toString());
+    if (search) params.append("search", search);
+
+    const res = await this.request<{ success: boolean; data: Jugador[]; pagination: any }>(
+      `/jugadores?${params.toString()}`
+    );
+    return {
+      items: res.data,
+      pagination: res.pagination,
+    };
+  }
+
+  async getJugadorById(id: number): Promise<Jugador> {
+    const res = await this.request<{ success: boolean; data: Jugador }>(`/jugadores/${id}`);
+    return res.data;
+  }
+
+  async getJugadorStats(id: number): Promise<any> {
+    const res = await this.request<{ success: boolean; data: any }>(`/jugadores/${id}/stats`);
+    return res.data;
+  }
+
+  async createJugador(data: {
+    idEquipo: number;
+    nombreCompleto: string;
+    numero: number;
+    posicionPrincipal: string;
+    foto?: string | null;
+  }): Promise<Jugador> {
+    const res = await this.request<{ success: boolean; data: Jugador }>("/jugadores", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    return res.data;
+  }
+
+  async uploadJugadorFoto(id: number, file: File): Promise<{ url: string; jugador: Jugador }> {
+    const formData = new FormData();
+    formData.append("foto", file);
+
+    const res = await this.request<{ success: boolean; data: { url: string; jugador: Jugador } }>(
+      `/jugadores/${id}/foto`,
+      {
         method: "POST",
-        body: JSON.stringify(data),
-      });
-    } catch {
-      return {
-        id: Date.now(),
-        idEquipo: data.idEquipo || 1,
-        equipoRival: data.equipoRival || "Rival",
-        fecha: data.fecha || new Date().toISOString(),
-        resultado: "En progreso",
-        pin: data.pin || "1234",
-      };
-    }
+        body: formData,
+      }
+    );
+    return res.data;
   }
 
-  // Estadísticas Catálogo
+  async updateJugador(id: number, data: Partial<Jugador>): Promise<Jugador> {
+    const res = await this.request<{ success: boolean; data: Jugador }>(`/jugadores/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    });
+    return res.data;
+  }
+
+  async deleteJugador(id: number): Promise<void> {
+    await this.request(`/jugadores/${id}`, {
+      method: "DELETE",
+    });
+  }
+
+  // ==========================================
+  // PARTIDOS (CRUD + PAGINADO + DETALLES)
+  // ==========================================
+  async getPartidos(
+    page: number = 1,
+    limit: number = 10,
+    idEquipo?: number,
+    search?: string
+  ): Promise<PaginatedResult<Partido>> {
+    const params = new URLSearchParams({ page: page.toString(), limit: limit.toString() });
+    if (idEquipo) params.append("idEquipo", idEquipo.toString());
+    if (search) params.append("search", search);
+
+    const res = await this.request<{ success: boolean; data: Partido[]; pagination: any }>(
+      `/partidos?${params.toString()}`
+    );
+    return {
+      items: res.data,
+      pagination: res.pagination,
+    };
+  }
+
+  async getPartidoById(id: number): Promise<Partido> {
+    const res = await this.request<{ success: boolean; data: Partido }>(`/partidos/${id}`);
+    return res.data;
+  }
+
+  async getPartidoDetails(id: number): Promise<any> {
+    const res = await this.request<{ success: boolean; data: any }>(`/partidos/${id}/details`);
+    return res.data;
+  }
+
+  async createPartido(data: {
+    idEquipo: number;
+    equipoRival: string;
+    fecha: string;
+    resultado?: string | null;
+  }): Promise<Partido> {
+    const res = await this.request<{ success: boolean; data: Partido }>("/partidos", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    return res.data;
+  }
+
+  async updatePartido(id: number, data: Partial<Partido>): Promise<Partido> {
+    const res = await this.request<{ success: boolean; data: Partido }>(`/partidos/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    });
+    return res.data;
+  }
+
+  async deletePartido(id: number): Promise<void> {
+    await this.request(`/partidos/${id}`, {
+      method: "DELETE",
+    });
+  }
+
+  // ==========================================
+  // ESTADÍSTICAS & EVENTOS EN VIVO
+  // ==========================================
   async getEstadisticas(): Promise<EstadisticaAccion[]> {
-    try {
-      return await this.request<EstadisticaAccion[]>("/estadisticas");
-    } catch {
-      return initialEstadisticas;
-    }
+    const res = await this.request<{ success: boolean; data: EstadisticaAccion[] }>("/estadisticas");
+    return res.data;
   }
 
-  // Eventos de juego
+  async getEventos(idPartido?: number, idJugador?: number): Promise<EventoJuego[]> {
+    const params = new URLSearchParams();
+    if (idPartido) params.append("idPartido", idPartido.toString());
+    if (idJugador) params.append("idJugador", idJugador.toString());
+
+    const res = await this.request<{ success: boolean; data: EventoJuego[] }>(
+      `/eventos?${params.toString()}`
+    );
+    return res.data;
+  }
+
   async createEvento(data: {
     idPartido: number;
     idJugador: number;
     idEstadistica: number;
     cuarto: number;
+    tiro?: { x: number; y: number };
   }): Promise<EventoJuego> {
-    try {
-      return await this.request<EventoJuego>("/eventos", {
-        method: "POST",
-        body: JSON.stringify(data),
-      });
-    } catch {
-      return {
-        id: Date.now(),
-        ...data,
-        createdAt: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-      };
-    }
+    const res = await this.request<{ success: boolean; data: EventoJuego }>("/eventos", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    return res.data;
   }
 
-  // Tiros y Coordenadas
-  async createUbicacionTiro(data: { idEvento: number; x: number; y: number }): Promise<UbicacionTiro> {
-    try {
-      return await this.request<UbicacionTiro>("/ubicacion-tiros", {
-        method: "POST",
-        body: JSON.stringify(data),
-      });
-    } catch {
-      return {
-        id: Date.now(),
-        ...data,
-      };
-    }
+  async deleteEvento(id: number): Promise<void> {
+    await this.request(`/eventos/${id}`, {
+      method: "DELETE",
+    });
   }
 }
 

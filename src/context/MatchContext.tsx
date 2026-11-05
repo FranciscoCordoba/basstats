@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import type { Jugador, EventoJuego, UbicacionTiro, MatchLiveState } from "../types/index.js";
-import { initialJugadores, mockEventos, mockShotLocations } from "../data/mockData.js";
 import { api } from "../services/api.js";
 
 interface MatchContextType {
@@ -9,27 +8,39 @@ interface MatchContextType {
   setSelectedPlayer: (player: Jugador | null) => void;
   activeQuarter: number;
   setActiveQuarter: (q: number) => void;
-  recordStat: (statId: number, statName: string, points?: number, coordinates?: { x: number; y: number }) => Promise<void>;
+  recordStat: (
+    statId: number,
+    statName: string,
+    points?: number,
+    coordinates?: { x: number; y: number }
+  ) => Promise<void>;
   substitutePlayer: (outPlayerId: number, inPlayerId: number) => void;
   incrementRivalScore: (points: number) => void;
   decrementRivalScore: (points: number) => void;
   undoLastEvent: () => void;
-  startNewMatch: (localName: string, rivalName: string, startingFiveIds: number[], pin: string, initialJugadores: Jugador[]) => void;
+  startNewMatch: (
+    localName: string,
+    rivalName: string,
+    startingFiveIds: number[],
+    initialJugadoresList: Jugador[],
+    backendPartidoId?: number
+  ) => void;
+  resetMatch: () => void;
 }
 
-const initialMatchState: MatchLiveState = {
-  partidoId: 1,
-  equipoLocal: "Los Cóndores",
-  equipoRival: "Vikingos BC",
-  puntosLocal: 42,
-  puntosRival: 38,
-  cuarto: 2,
-  faltasLocal: 3,
-  faltasRival: 4,
-  jugadoresEnCancha: initialJugadores.slice(0, 5),
-  jugadoresBanca: initialJugadores.slice(5),
-  eventos: mockEventos,
-  tiros: mockShotLocations,
+const emptyMatchState: MatchLiveState = {
+  partidoId: 0,
+  equipoLocal: "",
+  equipoRival: "",
+  puntosLocal: 0,
+  puntosRival: 0,
+  cuarto: 1,
+  faltasLocal: 0,
+  faltasRival: 0,
+  jugadoresEnCancha: [],
+  jugadoresBanca: [],
+  eventos: [],
+  tiros: [],
 };
 
 const MatchContext = createContext<MatchContextType | undefined>(undefined);
@@ -37,23 +48,45 @@ const MatchContext = createContext<MatchContextType | undefined>(undefined);
 export const MatchProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [matchState, setMatchState] = useState<MatchLiveState>(() => {
     const saved = localStorage.getItem("basstats_live_match");
-    return saved ? JSON.parse(saved) : initialMatchState;
+    if (!saved) return emptyMatchState;
+    try {
+      const parsed = JSON.parse(saved);
+      // Asegurar que contenga jugadores válidos
+      if (parsed && Array.isArray(parsed.jugadoresEnCancha)) {
+        return parsed;
+      }
+      return emptyMatchState;
+    } catch {
+      return emptyMatchState;
+    }
   });
 
-  const [selectedPlayer, setSelectedPlayer] = useState<Jugador | null>(matchState.jugadoresEnCancha[0] || null);
+  const [selectedPlayer, setSelectedPlayer] = useState<Jugador | null>(
+    matchState.jugadoresEnCancha[0] || null
+  );
   const [activeQuarter, setActiveQuarter] = useState<number>(matchState.cuarto || 1);
 
-  // Synchronize storage
+  // Sincronizar con el almacenamiento local
   useEffect(() => {
-    localStorage.setItem("basstats_live_match", JSON.stringify(matchState));
+    if (matchState.partidoId > 0 && matchState.jugadoresEnCancha.length > 0) {
+      localStorage.setItem("basstats_live_match", JSON.stringify(matchState));
+    } else {
+      localStorage.removeItem("basstats_live_match");
+    }
   }, [matchState]);
 
-  const startNewMatch = (localName: string, rivalName: string, startingFiveIds: number[], pin: string, initialJugadores: Jugador[]) => {
-    const onCourt = initialJugadores.filter((j) => startingFiveIds.includes(j.id));
-    const onBench = initialJugadores.filter((j) => !startingFiveIds.includes(j.id));
+  const startNewMatch = (
+    localName: string,
+    rivalName: string,
+    startingFiveIds: number[],
+    initialJugadoresList: Jugador[],
+    backendPartidoId?: number
+  ) => {
+    const onCourt = initialJugadoresList.filter((j) => startingFiveIds.includes(j.id));
+    const onBench = initialJugadoresList.filter((j) => !startingFiveIds.includes(j.id));
 
     const newState: MatchLiveState = {
-      partidoId: Date.now(),
+      partidoId: backendPartidoId || Date.now(),
       equipoLocal: localName || "Local",
       equipoRival: rivalName || "Rival",
       puntosLocal: 0,
@@ -68,7 +101,14 @@ export const MatchProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     };
 
     setMatchState(newState);
-    setSelectedPlayer(newState.jugadoresEnCancha[0] || null);
+    setSelectedPlayer(onCourt[0] || null);
+    setActiveQuarter(1);
+  };
+
+  const resetMatch = () => {
+    localStorage.removeItem("basstats_live_match");
+    setMatchState(emptyMatchState);
+    setSelectedPlayer(null);
     setActiveQuarter(1);
   };
 
@@ -86,7 +126,11 @@ export const MatchProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       idJugador: selectedPlayer.id,
       idEstadistica: statId,
       cuarto: activeQuarter,
-      createdAt: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" }),
+      createdAt: new Date().toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+      }),
       jugadorNombre: selectedPlayer.nombreCompleto,
       jugadorNumero: selectedPlayer.numero,
       accionNombre: statName,
@@ -106,21 +150,20 @@ export const MatchProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       newEvent.ubicacion = newShot;
     }
 
-    // Try backend persistence in background
-    api.createEvento({
-      idPartido: matchState.partidoId,
-      idJugador: selectedPlayer.id,
-      idEstadistica: statId,
-      cuarto: activeQuarter,
-    }).then((created) => {
-      if (coordinates && created.id) {
-        api.createUbicacionTiro({
-          idEvento: created.id,
-          x: coordinates.x,
-          y: coordinates.y,
+    // Persistir en el backend PostgreSQL mediante la Web API
+    if (matchState.partidoId > 0) {
+      try {
+        await api.createEvento({
+          idPartido: matchState.partidoId,
+          idJugador: selectedPlayer.id,
+          idEstadistica: statId,
+          cuarto: activeQuarter,
+          tiro: coordinates,
         });
+      } catch (e) {
+        console.warn("Registro de evento en API:", e);
       }
-    }).catch((e) => console.log("Offline mode event logging", e));
+    }
 
     setMatchState((prev) => ({
       ...prev,
@@ -138,8 +181,12 @@ export const MatchProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
       if (!outPlayer || !inPlayer) return prev;
 
-      const newOnCourt = prev.jugadoresEnCancha.map((p) => (p.id === outPlayerId ? inPlayer : p));
-      const newOnBench = prev.jugadoresBanca.map((p) => (p.id === inPlayerId ? outPlayer : p));
+      const newOnCourt = prev.jugadoresEnCancha.map((p) =>
+        p.id === outPlayerId ? inPlayer : p
+      );
+      const newOnBench = prev.jugadoresBanca.map((p) =>
+        p.id === inPlayerId ? outPlayer : p
+      );
 
       return {
         ...prev,
@@ -164,13 +211,16 @@ export const MatchProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
       let scoreDelta = 0;
       if (last.accionNombre?.includes("Triple Anotado")) scoreDelta = 3;
-      else if (last.accionNombre?.includes("Tiro 2 Anotado")) scoreDelta = 2;
-      else if (last.accionNombre?.includes("Tiro Libre Anotado")) scoreDelta = 1;
+      else if (last.accionNombre?.includes("Doble Anotado") || last.accionNombre?.includes("Tiro 2 Anotado"))
+        scoreDelta = 2;
+      else if (last.accionNombre?.includes("Libre Anotado")) scoreDelta = 1;
 
       return {
         ...prev,
         puntosLocal: Math.max(0, prev.puntosLocal - scoreDelta),
-        faltasLocal: last.accionNombre?.includes("Falta") ? Math.max(0, prev.faltasLocal - 1) : prev.faltasLocal,
+        faltasLocal: last.accionNombre?.includes("Falta")
+          ? Math.max(0, prev.faltasLocal - 1)
+          : prev.faltasLocal,
         eventos: remaining,
         tiros: prev.tiros.filter((t) => t.idEvento !== last.id),
       };
@@ -191,6 +241,7 @@ export const MatchProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         decrementRivalScore,
         undoLastEvent,
         startNewMatch,
+        resetMatch,
       }}
     >
       {children}

@@ -53,7 +53,7 @@ export const MatchSummaryPage: React.FC = () => {
   const [isExporting, setIsExporting] = useState<boolean>(false);
   const [exportSuccess, setExportSuccess] = useState<boolean>(false);
 
-  // Combine all active and bench players
+  // Combinar todos los jugadores titulares y de la banca
   const allPlayers = useMemo(() => {
     const combined = [...matchState.jugadoresEnCancha, ...matchState.jugadoresBanca];
     const uniqueMap = new Map<number, Jugador>();
@@ -65,7 +65,7 @@ export const MatchSummaryPage: React.FC = () => {
     return allPlayers[0]?.id || 1;
   });
 
-  // Calculate detailed stats per player (without eff and without turnovers)
+  // Calcular estadísticas detalladas por jugador
   const playerStatsList = useMemo<PlayerMatchStats[]>(() => {
     return allPlayers.map((player) => {
       let pts = 0;
@@ -164,7 +164,7 @@ export const MatchSummaryPage: React.FC = () => {
     });
   }, [allPlayers, matchState.eventos, matchState.tiros]);
 
-  // Team totals
+  // Totales acumulados del equipo
   const teamTotals = useMemo(() => {
     return playerStatsList.reduce(
       (acc, curr) => ({
@@ -206,12 +206,12 @@ export const MatchSummaryPage: React.FC = () => {
     );
   }, [playerStatsList]);
 
-  // Selected player stats
+  // Estadísticas del jugador seleccionado
   const activePlayerStats = useMemo(() => {
     return playerStatsList.find((p) => p.jugador.id === selectedPlayerId) || playerStatsList[0];
   }, [playerStatsList, selectedPlayerId]);
 
-  // Events of selected player
+  // Eventos del jugador seleccionado
   const activePlayerEvents = useMemo(() => {
     if (!activePlayerStats) return [];
     return matchState.eventos.filter((e) => e.idJugador === activePlayerStats.jugador.id);
@@ -219,7 +219,7 @@ export const MatchSummaryPage: React.FC = () => {
 
   const isLocalWinner = matchState.puntosLocal >= matchState.puntosRival;
 
-  // Export Box Score table as image for mobile and desktop
+  // Exportar la tabla de estadísticas (Box Score) como imagen
   const handleExportImage = async () => {
     if (!tableExportRef.current || isExporting) return;
     setIsExporting(true);
@@ -267,6 +267,29 @@ export const MatchSummaryPage: React.FC = () => {
       setIsExporting(false);
     }
   };
+
+  if (allPlayers.length === 0) {
+    return (
+      <div className="max-w-md mx-auto px-4 py-20 text-center space-y-4">
+        <div className="w-16 h-16 rounded-3xl bg-primary/20 text-primary mx-auto flex items-center justify-center">
+          <Trophy className="w-8 h-8 text-primary" />
+        </div>
+        <h2 className="text-xl font-headline font-bold text-on-surface">Sin partido para resumir</h2>
+        <p className="text-xs text-on-surface-variant leading-relaxed">
+          No hay ningún resumen de partido activo disponible en esta sesión.
+        </p>
+        <div className="pt-2">
+          <Link
+            to="/"
+            className="inline-flex items-center space-x-2 bg-primary hover:bg-orange-600 text-white font-bold text-xs px-6 py-3 rounded-xl shadow-lg transition-transform active:scale-95"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span>Volver al Inicio</span>
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-6xl mx-auto px-3 sm:px-6 py-4 space-y-4">

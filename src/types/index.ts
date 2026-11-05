@@ -1,12 +1,16 @@
-export interface Equipo {
+export interface Usuario {
   id: number;
   nombre: string;
   correo: string;
   nick: string;
+  rol: "Administrador" | "Equipo";
   logo?: string | null;
   createdAt?: string;
   updatedAt?: string;
 }
+
+// Alias de compatibilidad hacia atrás
+export type Equipo = Usuario;
 
 export interface Jugador {
   id: number;
@@ -17,7 +21,7 @@ export interface Jugador {
   foto?: string | null;
   createdAt?: string;
   updatedAt?: string;
-  // Computed stats for display
+  // Estadísticas calculadas para visualización
   ppg?: number;
   rpg?: number;
   apg?: number;
@@ -32,17 +36,19 @@ export interface Partido {
   equipoRival: string;
   fecha: string;
   resultado?: string | null;
-  pin: string;
   puntosEquipo?: number;
   puntosRival?: number;
   cuartoActual?: number;
   createdAt?: string;
+  updatedAt?: string;
+  equipoNombre?: string;
+  pin?: string;
 }
 
 export interface EstadisticaAccion {
   id: number;
   accion: string;
-  categoria?: "tiro" | "falta" | "rebote" | "pase" | "otro";
+  categoria?: "tiro" | "falta" | "rebote" | "pase" | "otro" | string;
   puntos?: number;
 }
 
@@ -50,8 +56,8 @@ export interface UbicacionTiro {
   id?: number;
   idEvento?: number;
   idJugador?: number;
-  x: number; // percentage 0-100
-  y: number; // percentage 0-100
+  x: number; // porcentaje 0-100
+  y: number; // porcentaje 0-100
   anotado?: boolean;
 }
 
@@ -61,8 +67,8 @@ export interface EventoJuego {
   idJugador: number;
   idEstadistica: number;
   cuarto: number;
-  createdAt: string;
-  // populated details
+  createdAt?: string;
+  // Detalles poblados con relaciones
   jugadorNombre?: string;
   jugadorNumero?: number;
   accionNombre?: string;
@@ -82,4 +88,16 @@ export interface MatchLiveState {
   jugadoresBanca: Jugador[];
   eventos: EventoJuego[];
   tiros: UbicacionTiro[];
+}
+
+export interface PaginationMeta {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
+
+export interface PaginatedResult<T> {
+  items: T[];
+  pagination: PaginationMeta;
 }

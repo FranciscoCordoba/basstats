@@ -1,89 +1,137 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
-import type { Equipo } from "../types/index.js";
-import { initialEquipo } from "../data/mockData.js";
+import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+import type { Usuario } from "../types/index.js";
 import { api } from "../services/api.js";
 
+const emptyTeam: Usuario = {
+  id: 0,
+  nombre: "Sin Equipo",
+  correo: "",
+  nick: "",
+  rol: "Equipo",
+  logo: null,
+};
+
 interface AuthContextType {
-  currentTeam: Equipo;
+  user: Usuario | null;
+  currentTeam: Usuario;
   isAuthenticated: boolean;
-  login: (emailOrNick: string) => Promise<boolean>;
-  registerTeam: (teamData: {
+  isAdmin: boolean;
+  loading: boolean;
+  login: (correo: string, contrasena: string) => Promise<void>;
+  register: (data: {
     nombre: string;
-    nick: string;
     correo: string;
+    nick: string;
     contrasena: string;
+    rol?: "Administrador" | "Equipo";
     logo?: string;
-  }) => Promise<boolean>;
+  }) => Promise<void>;
   logout: () => void;
+  updateProfile: (data: { nombre?: string; nick?: string }) => Promise<void>;
+  uploadAvatar: (file: File) => Promise<string>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [currentTeam, setCurrentTeam] = useState<Equipo>(() => {
-    const saved = localStorage.getItem("basstats_team");
-    return saved ? JSON.parse(saved) : initialEquipo;
+  const [user, setUser] = useState<Usuario | null>(() => {
+    const token = localStorage.getItem("basstats_token");
+    const saved = localStorage.getItem("basstats_user");
+    if (!token || !saved) return null;
+    try {
+      return JSON.parse(saved);
+    } catch {
+      return null;
+    }
   });
 
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
-    return localStorage.getItem("basstats_auth") === "true";
-  });
+  const [loading, setLoading] = useState<boolean>(true);
+
+  // Restaurar sesión autenticada a partir del token JWT
+  const refreshProfile = useCallback(async () => {
+    const token = localStorage.getItem("basstats_token");
+    if (!token) {
+      setUser(null);
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const profile = await api.getProfile();
+      setUser(profile);
+      localStorage.setItem("basstats_user", JSON.stringify(profile));
+    } catch (err) {
+      console.warn("Sesión expirada o no válida, reiniciando:", err);
+      localStorage.removeItem("basstats_token");
+      localStorage.removeItem("basstats_user");
+      setUser(null);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    localStorage.setItem("basstats_team", JSON.stringify(currentTeam));
-    localStorage.setItem("basstats_auth", isAuthenticated.toString());
-  }, [currentTeam, isAuthenticated]);
+    refreshProfile();
+  }, [refreshProfile]);
 
-  const login = async (emailOrNick: string): Promise<boolean> => {
-    try {
-      const equipos = await api.getEquipos();
-      const found = equipos.find(
-        (e) =>
-          e.correo.toLowerCase() === emailOrNick.toLowerCase() ||
-          e.nick.toLowerCase() === emailOrNick.toLowerCase()
-      );
-      if (found) {
-        setCurrentTeam(found);
-        setIsAuthenticated(true);
-        return true;
-      }
-      // Demo fallback
-      setCurrentTeam({
-        ...initialEquipo,
-        nick: emailOrNick.toUpperCase(),
-      });
-      setIsAuthenticated(true);
-      return true;
-    } catch {
-      setIsAuthenticated(true);
-      return true;
-    }
+  const login = async (correo: string, contrasena: string) => {
+    const result = await api.login(correo, contrasena);
+    setUser(result.user);
+    localStorage.setItem("basstats_user", JSON.stringify(result.user));
   };
 
-  const registerTeam = async (teamData: {
+  const register = async (data: {
     nombre: string;
-    nick: string;
     correo: string;
+    nick: string;
     contrasena: string;
+    rol?: "Administrador" | "Equipo";
     logo?: string;
-  }): Promise<boolean> => {
-    try {
-      const created = await api.createEquipo(teamData);
-      setCurrentTeam(created);
-      setIsAuthenticated(true);
-      return true;
-    } catch (e) {
-      console.error("Register team failed:", e);
-      return false;
-    }
+  }) => {
+    const result = await api.register(data);
+    setUser(result.user);
+    localStorage.setItem("basstats_user", JSON.stringify(result.user));
   };
 
   const logout = () => {
-    setIsAuthenticated(false);
+    localStorage.removeItem("basstats_token");
+    localStorage.removeItem("basstats_user");
+    setUser(null);
+    window.location.href = "/login";
   };
 
+  const updateProfile = async (data: { nombre?: string; nick?: string }) => {
+    const updated = await api.updateProfile(data);
+    setUser(updated);
+    localStorage.setItem("basstats_user", JSON.stringify(updated));
+  };
+
+  const uploadAvatar = async (file: File) => {
+    const res = await api.uploadAvatar(file);
+    setUser(res.user);
+    localStorage.setItem("basstats_user", JSON.stringify(res.user));
+    return res.url;
+  };
+
+  const isAuthenticated = !!user && !!localStorage.getItem("basstats_token");
+  const isAdmin = user?.rol === "Administrador";
+  const currentTeam = user || emptyTeam;
+
   return (
-    <AuthContext.Provider value={{ currentTeam, isAuthenticated, login, registerTeam, logout }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        currentTeam,
+        isAuthenticated,
+        isAdmin,
+        loading,
+        login,
+        register,
+        logout,
+        updateProfile,
+        uploadAvatar,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
