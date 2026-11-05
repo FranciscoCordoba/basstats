@@ -132,6 +132,20 @@ El script de inicialización (`seed.sql` / `npm run db:seed`) incluye cuentas pr
 * Node.js v18 o superior
 * Docker Desktop (para la base de datos PostgreSQL)
 
+### ☁️ Configuración de Almacenamiento en la Nube (Cloudinary)
+
+Para dar cumplimiento al **Requerimiento 3 (Manejo de Archivos en Servidor)**, el sistema sube y procesa imágenes de avatar y fotos de jugadores directamente en la nube utilizando **Cloudinary**.
+
+> [!TIP]
+> **Credenciales activas listas para usar (Plug & Play):**
+> Para evitarle pasos adicionales y la necesidad de registrarse en servicios externos al docente / evaluador, tanto el archivo `basstats-api/.env` como `basstats-api/.env.example` ya incluyen **credenciales activas de prueba** con permisos completos de subida:
+> ```env
+> CLOUDINARY_CLOUD_NAME=ddroukwqm
+> CLOUDINARY_API_KEY=553115469759549
+> CLOUDINARY_API_SECRET=q_Rx1WGgX2nerCNlSyPX1W0qp0Y
+> ```
+> *Si el evaluador desea utilizar su propia cuenta de Cloudinary, puede crearse una cuenta gratuita en [cloudinary.com](https://cloudinary.com/) y sustituir dichos valores en su archivo `.env`.*
+
 ### 1. Iniciar Base de Datos PostgreSQL
 Desde la carpeta raíz del proyecto:
 ```bash
